@@ -1,0 +1,47 @@
+name: flutter_clean_architecture_template
+description: >
+  A production-style Flutter starter demonstrating Clean Architecture,
+  BLoC state management, dependency injection, and a feature-first folder
+  structure. Built as a reference implementation by Mohammed Daghmah.
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+  flutter: ">=3.19.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State management
+  flutter_bloc: ^8.1.5
+  equatable: ^2.0.5
+
+  # Dependency injection
+  get_it: ^7.7.0
+
+  # Networking
+  dio: ^5.5.0
+  connectivity_plus: ^6.0.5
+
+  # Functional error handling
+  dartz: ^0.10.1
+
+  # Local persistence (offline cache)
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+  # Testing
+  bloc_test: ^9.1.7
+  mocktail: ^1.0.4
+
+flutter:
+  uses-material-design: true
