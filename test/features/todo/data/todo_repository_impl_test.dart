@@ -45,6 +45,12 @@ void main() {
     createdAt: DateTime(2026, 1, 1),
   );
 
+  // NOTE ON EQUALITY: dartz's Right/Left compare their wrapped value with a
+  // plain `==`, not a deep one. Dart's `List` doesn't override `==` (two
+  // list literals with identical contents are still `==` false), so
+  // `expect(result, Right([tTodoModel]))` fails even when the data is
+  // correct. The fix is to `.fold` out of the Either and assert on the
+  // unwrapped value with `equals`, which *does* do deep list comparison.
   group('getAllTodos — online', () {
     setUp(() {
       when(() => networkInfo.isConnected).thenAnswer((_) async => true);
@@ -59,7 +65,10 @@ void main() {
 
       verify(() => remoteDataSource.getAllTodos()).called(1);
       verify(() => localDataSource.cacheTodos([tTodoModel])).called(1);
-      expect(result, Right<Failure, List<TodoModel>>([tTodoModel]));
+      result.fold(
+        (failure) => fail('expected Right, got Left($failure)'),
+        (todos) => expect(todos, equals([tTodoModel])),
+      );
     });
 
     test('returns ServerFailure when the remote call throws', () async {
@@ -68,7 +77,7 @@ void main() {
 
       final result = await repository.getAllTodos();
 
-      expect(result, const Left<Failure, List<TodoModel>>(ServerFailure('Down')));
+      expect(result, const Left<Failure, dynamic>(ServerFailure('Down')));
       verifyZeroInteractions(localDataSource);
     });
   });
@@ -86,7 +95,10 @@ void main() {
       final result = await repository.getAllTodos();
 
       verifyZeroInteractions(remoteDataSource);
-      expect(result, Right<Failure, List<TodoModel>>([tTodoModel]));
+      result.fold(
+        (failure) => fail('expected Right, got Left($failure)'),
+        (todos) => expect(todos, equals([tTodoModel])),
+      );
     });
 
     test('returns CacheFailure when nothing is cached', () async {
@@ -95,7 +107,7 @@ void main() {
 
       final result = await repository.getAllTodos();
 
-      expect(result, const Left<Failure, List<TodoModel>>(CacheFailure('Empty')));
+      expect(result, const Left<Failure, dynamic>(CacheFailure('Empty')));
     });
   });
 }
