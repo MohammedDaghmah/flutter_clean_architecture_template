@@ -1,6 +1,6 @@
 # Flutter Clean Architecture Template
 
-[![CI](https://github.com/engMohammedHussein/flutter_clean_architecture_template/actions/workflows/ci.yml/badge.svg)](https://github.com/engMohammedHussein/flutter_clean_architecture_template/actions/workflows/ci.yml)
+[![CI](https://github.com/MohammedDaghmah/flutter_clean_architecture_template/actions/workflows/ci.yml/badge.svg)](https://github.com/MohammedDaghmah/flutter_clean_architecture_template/actions/workflows/ci.yml)
 
 A reference Flutter starter demonstrating **Clean Architecture**, **BLoC**
 state management, **dependency injection**, and a **feature-first** folder
@@ -33,6 +33,7 @@ lib/
 │   ├── di/                   # Dependency injection setup (get_it)
 │   ├── error/                # Failure & Exception types
 │   ├── network/              # Dio client, connectivity check
+│   ├── security/             # Biometric unlock, secure storage, pinning, root detection
 │   └── usecase/              # Base UseCase contract
 │
 └── features/
@@ -78,6 +79,39 @@ would never know.
 | Swappable data sources (fake / REST) behind one contract | `todo_fake_remote_data_source.dart`, `todo_remote_data_source.dart` |
 | Offline-first fallback (remote → Hive cache) | `todo_repository_impl.dart` |
 | Tests at every layer, each isolated from the others | `test/` |
+
+## Mobile security
+
+All security settings live in one immutable `SecurityPolicy` value
+(`lib/main.dart`), and every piece sits behind a small interface so it can be
+faked in tests:
+
+| Control | Contract | Implementation |
+|---|---|---|
+| Biometric unlock (fingerprint / face) | `BiometricAuthenticator` | `local_auth` |
+| Secure token storage (Keychain / Keystore) | `TokenStorage` | `flutter_secure_storage` |
+| Root / jailbreak detection | `DeviceIntegrityChecker` | `safe_device` |
+| Certificate pinning | `applyCertificatePinning(dio, pins)` | Dio `validateCertificate` |
+| Debug-only HTTP logging | `DioClient` | `kDebugMode` |
+
+`SecurityGate` wraps the app and applies the policy: it blocks compromised
+devices and requires biometric unlock when the policy asks for it.
+
+- To enable the lock screen, set `requireBiometricUnlock: true`.
+- To enable pinning, add your server's fingerprints to `certificatePins`
+  (see `lib/core/security/certificate_fingerprint.dart` for the command), and
+  always ship a backup pin.
+- Device checks are one defensive layer. The server must still validate every
+  request.
+
+Build an obfuscated release:
+
+```bash
+flutter build apk --release --obfuscate --split-debug-info=build/symbols
+```
+
+The same command is available as a manual GitHub Actions workflow
+(`Release build (obfuscated)`).
 
 ## Getting started
 

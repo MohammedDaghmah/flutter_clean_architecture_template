@@ -14,6 +14,10 @@ import '../../features/todo/domain/usecases/get_all_todos.dart';
 import '../../features/todo/presentation/bloc/todo_bloc.dart';
 import '../network/dio_client.dart';
 import '../network/network_info.dart';
+import '../security/biometric_authenticator.dart';
+import '../security/device_integrity.dart';
+import '../security/secure_token_storage.dart';
+import '../security/security_policy.dart';
 
 final sl = GetIt.instance;
 
@@ -29,12 +33,28 @@ final sl = GetIt.instance;
 Future<void> initDependencies({
   required String apiBaseUrl,
   bool useFakeBackend = true,
+  SecurityPolicy securityPolicy = const SecurityPolicy(),
 }) async {
   await Hive.initFlutter();
   final todoBox = await Hive.openBox<Map>(TodoLocalDataSourceImpl.boxName);
 
+  // Security
+  sl.registerLazySingleton<SecurityPolicy>(() => securityPolicy);
+  sl.registerLazySingleton<TokenStorage>(() => SecureTokenStorage());
+  sl.registerLazySingleton<BiometricAuthenticator>(
+    () => LocalAuthBiometricAuthenticator(),
+  );
+  sl.registerLazySingleton<DeviceIntegrityChecker>(
+    () => SafeDeviceIntegrityChecker(),
+  );
+
   // Core
-  sl.registerLazySingleton<Dio>(() => DioClient.create(baseUrl: apiBaseUrl));
+  sl.registerLazySingleton<Dio>(
+    () => DioClient.create(
+      baseUrl: apiBaseUrl,
+      certificatePins: securityPolicy.certificatePins,
+    ),
+  );
   sl.registerLazySingleton<Connectivity>(() => Connectivity());
 
   if (useFakeBackend) {

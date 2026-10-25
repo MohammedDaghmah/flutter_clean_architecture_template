@@ -32,6 +32,12 @@ dependencies:
   hive: ^2.2.3
   hive_flutter: ^1.1.0
 
+  # Mobile security
+  local_auth: ^2.1.8 # biometric unlock (fingerprint / face)
+  flutter_secure_storage: ^9.0.0 # Keychain / Keystore token storage
+  safe_device: ^1.1.6 # root / jailbreak detection
+  crypto: ^3.0.3 # SHA-256 for certificate pinning
+
   cupertino_icons: ^1.0.8
 
 dev_dependencies:
